@@ -2,6 +2,7 @@ import React from "react";
 
 const THEME_KEY = "voxket-theme";
 const CONTACT_EMAIL = "bbbengal@example.com";
+const SUBMIT_ENDPOINT = null; // Set to your form service endpoint to enable direct submissions
 
 const App = () => {
   // Default = dark (works on phone + laptop). Users can toggle to light.
@@ -17,6 +18,8 @@ const App = () => {
   const [contactName, setContactName] = React.useState("");
   const [contactEmail, setContactEmail] = React.useState("");
   const [contactMessage, setContactMessage] = React.useState("");
+  const [contactErrors, setContactErrors] = React.useState({});
+  const [contactStatus, setContactStatus] = React.useState("idle"); // idle | loading | success | error
 
   React.useEffect(() => {
     const root = window.document.documentElement;
@@ -31,20 +34,55 @@ const App = () => {
 
   const toggleTheme = () => setTheme((t) => (t === "dark" ? "light" : "dark"));
 
-  const handleContactSubmit = (e) => {
+  const handleContactSubmit = async (e) => {
     e.preventDefault();
 
-    const subject = `Website enquiry - ${contactName || "B B Bengal"}`;
-    const body = [
-      `Name: ${contactName || "-"}`,
-      `Email: ${contactEmail || "-"}`,
-      "",
-      "Message:",
-      contactMessage || "-",
-    ].join("\n");
+    const errors = {};
+    const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail);
+    if (!contactName || contactName.trim().length < 2) errors.name = "Please enter at least 2 characters.";
+    if (!emailOk) errors.email = "Please enter a valid email address.";
+    if (!contactMessage || contactMessage.trim().length < 10) errors.message = "Please enter at least 10 characters.";
+    setContactErrors(errors);
+    if (Object.keys(errors).length > 0) return;
 
-    const mailto = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    window.location.href = mailto;
+    const payload = {
+      name: contactName.trim(),
+      email: contactEmail.trim(),
+      message: contactMessage.trim(),
+      source: "landingpage",
+    };
+
+    try {
+      setContactStatus("loading");
+      if (SUBMIT_ENDPOINT) {
+        const res = await fetch(SUBMIT_ENDPOINT, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        if (!res.ok) throw new Error("Submission failed");
+        setContactStatus("success");
+      } else {
+        const subject = `Website enquiry - ${contactName || "B B Bengal"}`;
+        const body = [
+          `Name: ${contactName || "-"}`,
+          `Email: ${contactEmail || "-"}`,
+          "",
+          "Message:",
+          contactMessage || "-",
+        ].join("\n");
+        const mailto = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+        window.location.href = mailto;
+        setContactStatus("success");
+      }
+      setContactName("");
+      setContactEmail("");
+      setContactMessage("");
+      setContactErrors({});
+    } catch (err) {
+      console.error(err);
+      setContactStatus("error");
+    }
   };
 
   const SocialBar = () => (
@@ -92,20 +130,47 @@ const App = () => {
     const safeImages = Array.isArray(images) ? images : [];
     const [activeIndex, setActiveIndex] = React.useState(0);
     const touchStart = React.useRef(null);
+    const [anim, setAnim] = React.useState(null); // { from, to, dir: 'next' | 'prev', phase: 'start' | 'run' }
+    const timers = React.useRef({ phaseTimer: null, endTimer: null });
+    const imageRegionId = React.useMemo(() => `carousel-${title.replace(/\s+/g, "-").toLowerCase()}`,[title]);
 
     const hasImages = safeImages.length > 0;
     const canNavigate = safeImages.length > 1;
     const current = hasImages ? safeImages[Math.min(activeIndex, safeImages.length - 1)] : null;
 
-    const goPrev = () => {
+    const startNav = (dir) => {
       if (!canNavigate) return;
-      setActiveIndex((i) => (i - 1 + safeImages.length) % safeImages.length);
+      if (anim) return;
+      const to =
+        dir === "next"
+          ? (activeIndex + 1) % safeImages.length
+          : (activeIndex - 1 + safeImages.length) % safeImages.length;
+      setAnim({ from: activeIndex, to, dir, phase: "start" });
+
+      // kick animation into run phase after a tick
+      if (timers.current.phaseTimer) window.clearTimeout(timers.current.phaseTimer);
+      timers.current.phaseTimer = window.setTimeout(() => {
+        setAnim((a) => (a ? { ...a, phase: "run" } : a));
+      }, 16);
+
+      // finalize animation: commit index and clear anim state
+      if (timers.current.endTimer) window.clearTimeout(timers.current.endTimer);
+      timers.current.endTimer = window.setTimeout(() => {
+        setActiveIndex(to);
+        setAnim(null);
+      }, 600);
     };
 
-    const goNext = () => {
-      if (!canNavigate) return;
-      setActiveIndex((i) => (i + 1) % safeImages.length);
-    };
+    const goPrev = () => startNav("prev");
+    const goNext = () => startNav("next");
+
+    React.useEffect(() => {
+      // cleanup timers on unmount
+      return () => {
+        if (timers.current.phaseTimer) window.clearTimeout(timers.current.phaseTimer);
+        if (timers.current.endTimer) window.clearTimeout(timers.current.endTimer);
+      };
+    }, []);
 
     const handleTouchStart = (e) => {
       const t = e.touches?.[0];
@@ -121,16 +186,54 @@ const App = () => {
       touchStart.current = null;
       if (!canNavigate) return;
       if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) {
-        if (dx < 0) {
-          goNext();
-        } else {
-          goPrev();
-        }
+        if (dx < 0) goNext();
+        else goPrev();
       }
     };
 
+    const handleKeyDown = (e) => {
+      if (!canNavigate) return;
+      if (e.key === "ArrowRight") {
+        e.preventDefault();
+        goNext();
+      } else if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        goPrev();
+      }
+    };
+
+    const deriveFormats = (path) => {
+      // create .avif and .webp paths beside original
+      if (!path) return { avif: null, webp: null, original: path };
+      const base = path.replace(/\.(jpg|jpeg|png)$/i, "");
+      return {
+        avif: `${base}.avif`,
+        webp: `${base}.webp`,
+        original: path,
+      };
+    };
+
+    const animatedFrom = anim ? safeImages[anim.from] : current;
+    const animatedTo = anim ? safeImages[anim.to] : null;
+    const isRun = anim?.phase === "run";
+    const isNext = anim?.dir === "next";
+
+    const fromClass =
+      anim == null
+        ? "opacity-100 translate-x-0"
+        : "opacity-100 translate-x-0";
+
+    const toClass =
+      anim == null
+        ? ""
+        : isRun
+          ? "opacity-100 translate-x-0"
+          : isNext
+            ? "opacity-100 translate-x-6"
+            : "opacity-100 -translate-x-6";
+
     return (
-      <div className="rounded-xl border border-blue-200/70 dark:border-blue-900/50 bg-white/70 dark:bg-[#0a0f1e] p-5 flex flex-col gap-3 hover:shadow-xl transition-all duration-300">
+      <div className="rounded-xl border border-blue-200/70 dark:border-blue-900/50 bg-white/70 dark:bg-[#0a0f1e] p-5 flex flex-col gap-3 hover:shadow-xl transition-all duration-300" role="region" aria-label={`${title} image carousel`} aria-roledescription="carousel">
         <span className="inline-flex w-fit px-2 py-0.5 rounded-full bg-blue-500/15 dark:bg-blue-500/20 text-[10px] uppercase tracking-wide text-blue-600 dark:text-blue-400 border border-blue-500/20 dark:border-blue-500/30">
           {tag}
         </span>
@@ -141,7 +244,9 @@ const App = () => {
               type="button"
               onClick={goPrev}
               disabled={!canNavigate}
-              aria-label="Previous photo"
+              aria-label={`Previous photo`}
+              aria-controls={imageRegionId}
+              aria-disabled={!canNavigate}
               className={`h-8 w-8 rounded-full border border-blue-500/40 bg-blue-500/10 dark:bg-blue-900/20 text-slate-900 dark:text-white text-sm transition-all ${
                 canNavigate ? "hover:bg-blue-500/20 hover:border-blue-400" : "opacity-40 cursor-not-allowed"
               }`}
@@ -152,7 +257,9 @@ const App = () => {
               type="button"
               onClick={goNext}
               disabled={!canNavigate}
-              aria-label="Next photo"
+              aria-label={`Next photo`}
+              aria-controls={imageRegionId}
+              aria-disabled={!canNavigate}
               className={`h-8 w-8 rounded-full border border-blue-500/40 bg-blue-500/10 dark:bg-blue-900/20 text-slate-900 dark:text-white text-sm transition-all ${
                 canNavigate ? "hover:bg-blue-500/20 hover:border-blue-400" : "opacity-40 cursor-not-allowed"
               }`}
@@ -163,12 +270,49 @@ const App = () => {
         </div>
 
         <div
+          id={imageRegionId}
           className="relative overflow-hidden rounded-xl border border-blue-200/70 dark:border-blue-900/50 bg-blue-900/10 dark:bg-blue-900/20"
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
+          onKeyDown={handleKeyDown}
+          tabIndex={0}
+          aria-live="polite"
         >
-          {current ? (
-            <img src={current.src} alt={current.alt} className="h-56 w-full object-cover" loading="lazy" />
+          {animatedFrom ? (
+            <div className="relative h-56 w-full">
+              {(() => {
+                const f = deriveFormats(animatedFrom.src);
+                return (
+                  <picture className={`absolute inset-0 h-full w-full ${fromClass} z-10`}>
+                    {f.avif && <source srcSet={f.avif} type="image/avif" />}
+                    {f.webp && <source srcSet={f.webp} type="image/webp" />}
+                    <img
+                      src={f.original}
+                      alt={animatedFrom.alt}
+                      className={`h-full w-full object-cover`}
+                      loading="lazy"
+                      draggable={false}
+                    />
+                  </picture>
+                );
+              })()}
+              {animatedTo && (() => {
+                const f2 = deriveFormats(animatedTo.src);
+                return (
+                  <picture className={`absolute inset-0 h-full w-full ${toClass} transition-transform duration-600 ease-in-out z-20`}>
+                    {f2.avif && <source srcSet={f2.avif} type="image/avif" />}
+                    {f2.webp && <source srcSet={f2.webp} type="image/webp" />}
+                    <img
+                      src={f2.original}
+                      alt={animatedTo.alt}
+                      className={`h-full w-full object-cover`}
+                      loading="lazy"
+                      draggable={false}
+                    />
+                  </picture>
+                );
+              })()}
+            </div>
           ) : (
             <div className="h-56 w-full flex items-center justify-center text-xs text-slate-500 dark:text-gray-400">
               No photos yet
@@ -176,7 +320,7 @@ const App = () => {
           )}
           <div className="pointer-events-none absolute inset-0 bg-linear-to-tr from-white/20 via-transparent to-blue-500/15 dark:from-[#0a0f1e]/40 dark:to-blue-500/20" />
           {canNavigate && (
-            <div className="absolute bottom-2 right-2 rounded-full bg-white/80 dark:bg-[#0a0f1e]/70 border border-blue-200/70 dark:border-blue-900/50 px-2 py-0.5 text-[10px] text-slate-700 dark:text-gray-200">
+            <div className="absolute bottom-2 right-2 rounded-full bg-white/80 dark:bg-[#0a0f1e]/70 border border-blue-200/70 dark:border-blue-900/50 px-2 py-0.5 text-[10px] text-slate-700 dark:text-gray-200" aria-label={`Slide ${Math.min(activeIndex + 1, safeImages.length)} of ${safeImages.length}`}>
               {Math.min(activeIndex + 1, safeImages.length)} / {safeImages.length}
             </div>
           )}
@@ -308,11 +452,15 @@ const App = () => {
           </div>
           <div className="md:justify-self-end">
             <div className="relative aspect-4/3 w-full max-w-md mx-auto rounded-2xl overflow-hidden border-2 border-blue-200/70 dark:border-blue-900/50 bg-blue-900/10 dark:bg-blue-900/20 backdrop-blur-xl shadow-2xl">
-              <img
-                src="civil1.jpeg"
-                alt="Commercial interior design and civil engineering concept"
-                className="h-full w-full object-cover"
-              />
+              <picture>
+                <source srcSet="/civil1.avif" type="image/avif" />
+                <source srcSet="/civil1.webp" type="image/webp" />
+                <img
+                  src="/civil1.jpeg"
+                  alt="Commercial interior design and civil engineering concept"
+                  className="h-full w-full object-cover"
+                />
+              </picture>
               <div className="pointer-events-none absolute inset-0 bg-linear-to-tr from-white/10 via-transparent to-blue-500/25 dark:from-[#0a0f1e]/80 dark:to-blue-500/40" />
             </div>
           </div>
@@ -337,15 +485,15 @@ const App = () => {
               title="Working Process in Interior"
               images={[
                 {
-                  src: "interior1.jpeg",
+                  src: "/interior1.jpeg",
                   alt: "Modern office interior with desks and lighting",
                 },
                 {
-                  src: "interior2.jpeg",
+                  src: "/interior2.jpeg",
                   alt: "Open-plan office space with modern design",
                 },
                 {
-                  src: "interior3.jpeg",
+                  src: "/interior3.jpeg",
                   alt: "Office meeting area with contemporary interior",
                 },
               ]}
@@ -355,15 +503,15 @@ const App = () => {
               title="Fire protection in buildings"
               images={[
                 {
-                  src: "civil1.jpeg",
+                  src: "/civil1.jpeg",
                   alt: "Retail showroom interior with product displays",
                 },
                 {
-                  src: "civil4.jpeg",
+                  src: "/civil4.jpeg",
                   alt: "Modern retail store interior with shelving",
                 },
                 {
-                  src: "civil3.jpeg",
+                  src: "/civil3.jpeg",
                   alt: "Showroom lighting and interior finishes",
                 },
               ]}
@@ -373,15 +521,15 @@ const App = () => {
               title="After interior design"
               images={[
                 {
-                  src: "room2.jpeg",
+                  src: "/room2.jpeg",
                   alt: "Commercial interior renovation with modern finishes",
                 },
                 {
-                  src: "room3.jpeg",
+                  src: "/room3.jpeg",
                   alt: "Modern commercial space interior detailing",
                 },
                 {
-                  src: "room4.jpeg",
+                  src: "/room4.jpeg",
                   alt: "Contemporary commercial interior space",
                 },
               ]}
@@ -441,9 +589,13 @@ const App = () => {
                   required
                 />
               </div>
-              <button type="submit" className="px-6 py-3 rounded-full bg-blue-500 hover:bg-blue-600 text-sm font-medium text-white shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 w-full md:w-auto">
-                Send message
+              <button type="submit" className="px-6 py-3 rounded-full bg-blue-500 hover:bg-blue-600 text-sm font-medium text-white shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 w-full md:w-auto" aria-busy={contactStatus === "loading"}>
+                {contactStatus === "loading" ? "Sending..." : "Send message"}
               </button>
+              <div id="contact-status" className="text-[11px]">
+                {contactStatus === "success" && <span className="text-green-600">Message sent successfully.</span>}
+                {contactStatus === "error" && <span className="text-red-600">Something went wrong. Please try again.</span>}
+              </div>
             </form>
           </div>
         </section>
