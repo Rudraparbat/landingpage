@@ -4,29 +4,32 @@ const THEME_KEY = "voxket-theme";
 const CONTACT_EMAIL = "bbbengal@example.com";
 
 const App = () => {
-  const [theme, setTheme] = React.useState("system");
+  // Default = dark (works on phone + laptop). Users can toggle to light.
+  // Initialize from localStorage immediately to match the HTML script
+  const [theme, setTheme] = React.useState(() => {
+    if (typeof window !== "undefined") {
+      const saved = window.localStorage.getItem(THEME_KEY);
+      return saved === "light" || saved === "dark" ? saved : "dark";
+    }
+    return "dark";
+  });
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
   const [contactName, setContactName] = React.useState("");
   const [contactEmail, setContactEmail] = React.useState("");
   const [contactMessage, setContactMessage] = React.useState("");
 
   React.useEffect(() => {
-    const saved = window.localStorage.getItem(THEME_KEY) || "system";
-    setTheme(saved);
-  }, []);
-
-  React.useEffect(() => {
     const root = window.document.documentElement;
-    const systemPrefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    const effectiveTheme = theme === "system" ? (systemPrefersDark ? "dark" : "light") : theme;
-
-    if (effectiveTheme === "dark") {
+    
+    if (theme === "dark") {
       root.classList.add("dark");
     } else {
       root.classList.remove("dark");
     }
     window.localStorage.setItem(THEME_KEY, theme);
   }, [theme]);
+
+  const toggleTheme = () => setTheme((t) => (t === "dark" ? "light" : "dark"));
 
   const handleContactSubmit = (e) => {
     e.preventDefault();
@@ -45,7 +48,7 @@ const App = () => {
   };
 
   const SocialBar = () => (
-    <div className="flex items-center gap-3 text-sm">
+    <div className="flex items-center gap-3 text-sm text-slate-700 dark:text-gray-200">
       <a href="https://facebook.com/yourpage" target="_blank" rel="noreferrer" aria-label="Facebook" className="hover:opacity-80">
         <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
           <path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/>
@@ -74,14 +77,14 @@ const App = () => {
   const SectionTitle = ({ label }) => (
     <div className="flex items-center gap-3">
       <div className="h-px w-8 bg-blue-500" />
-      <h2 className="text-sm tracking-[0.25em] uppercase text-gray-400">{label}</h2>
+      <h2 className="text-sm tracking-[0.25em] uppercase text-slate-500 dark:text-gray-400">{label}</h2>
     </div>
   );
 
   const ServiceCard = ({ title, desc }) => (
-    <div className="rounded-xl border border-blue-900/50 bg-[#0a0f1e] p-5 hover:border-blue-500/60 transition-all duration-300 hover:shadow-lg">
-      <h3 className="text-sm font-semibold mb-2 text-white">{title}</h3>
-      <p className="text-xs text-gray-400">{desc}</p>
+    <div className="rounded-xl border border-blue-200/70 dark:border-blue-900/50 bg-white/70 dark:bg-[#0a0f1e] p-5 hover:border-blue-500/60 transition-all duration-300 hover:shadow-lg">
+      <h3 className="text-sm font-semibold mb-2 text-slate-900 dark:text-white">{title}</h3>
+      <p className="text-xs text-slate-600 dark:text-gray-400">{desc}</p>
     </div>
   );
 
@@ -104,19 +107,19 @@ const App = () => {
     };
 
     return (
-      <div className="rounded-xl border border-blue-900/50 bg-[#0a0f1e] p-5 flex flex-col gap-3 hover:shadow-xl transition-all duration-300">
-        <span className="inline-flex w-fit px-2 py-0.5 rounded-full bg-blue-500/20 text-[10px] uppercase tracking-wide text-blue-400 border border-blue-500/30">
+      <div className="rounded-xl border border-blue-200/70 dark:border-blue-900/50 bg-white/70 dark:bg-[#0a0f1e] p-5 flex flex-col gap-3 hover:shadow-xl transition-all duration-300">
+        <span className="inline-flex w-fit px-2 py-0.5 rounded-full bg-blue-500/15 dark:bg-blue-500/20 text-[10px] uppercase tracking-wide text-blue-600 dark:text-blue-400 border border-blue-500/20 dark:border-blue-500/30">
           {tag}
         </span>
         <div className="flex items-start justify-between gap-3">
-          <h3 className="text-sm font-semibold text-white">{title}</h3>
+          <h3 className="text-sm font-semibold text-slate-900 dark:text-white">{title}</h3>
           <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={goPrev}
               disabled={!canNavigate}
               aria-label="Previous photo"
-              className={`h-8 w-8 rounded-full border border-blue-500/40 bg-blue-900/20 text-white text-sm transition-all ${
+              className={`h-8 w-8 rounded-full border border-blue-500/40 bg-blue-500/10 dark:bg-blue-900/20 text-slate-900 dark:text-white text-sm transition-all ${
                 canNavigate ? "hover:bg-blue-500/20 hover:border-blue-400" : "opacity-40 cursor-not-allowed"
               }`}
             >
@@ -127,7 +130,7 @@ const App = () => {
               onClick={goNext}
               disabled={!canNavigate}
               aria-label="Next photo"
-              className={`h-8 w-8 rounded-full border border-blue-500/40 bg-blue-900/20 text-white text-sm transition-all ${
+              className={`h-8 w-8 rounded-full border border-blue-500/40 bg-blue-500/10 dark:bg-blue-900/20 text-slate-900 dark:text-white text-sm transition-all ${
                 canNavigate ? "hover:bg-blue-500/20 hover:border-blue-400" : "opacity-40 cursor-not-allowed"
               }`}
             >
@@ -136,17 +139,17 @@ const App = () => {
           </div>
         </div>
 
-        <div className="relative overflow-hidden rounded-xl border border-blue-900/50 bg-blue-900/20">
+        <div className="relative overflow-hidden rounded-xl border border-blue-200/70 dark:border-blue-900/50 bg-blue-900/10 dark:bg-blue-900/20">
           {current ? (
-            <img src={current.src} alt={current.alt} className="h-44 w-full object-cover" loading="lazy" />
+            <img src={current.src} alt={current.alt} className="h-56 w-full object-cover" loading="lazy" />
           ) : (
-            <div className="h-44 w-full flex items-center justify-center text-xs text-gray-400">
+            <div className="h-56 w-full flex items-center justify-center text-xs text-slate-500 dark:text-gray-400">
               No photos yet
             </div>
           )}
-          <div className="pointer-events-none absolute inset-0 bg-linear-to-tr from-[#0a0f1e]/40 via-transparent to-blue-500/20" />
+          <div className="pointer-events-none absolute inset-0 bg-linear-to-tr from-white/20 via-transparent to-blue-500/15 dark:from-[#0a0f1e]/40 dark:to-blue-500/20" />
           {canNavigate && (
-            <div className="absolute bottom-2 right-2 rounded-full bg-[#0a0f1e]/70 border border-blue-900/50 px-2 py-0.5 text-[10px] text-gray-200">
+            <div className="absolute bottom-2 right-2 rounded-full bg-white/80 dark:bg-[#0a0f1e]/70 border border-blue-200/70 dark:border-blue-900/50 px-2 py-0.5 text-[10px] text-slate-700 dark:text-gray-200">
               {Math.min(activeIndex + 1, safeImages.length)} / {safeImages.length}
             </div>
           )}
@@ -156,41 +159,50 @@ const App = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-linear-to-br from-[#0a0f1e] via-[#0f172a] to-[#1e1b4b] text-white transition-all duration-500">
+    <div className="min-h-screen flex flex-col bg-linear-to-br from-slate-50 via-white to-slate-100 text-slate-900 dark:from-[#0a0f1e] dark:via-[#0f172a] dark:to-[#1e1b4b] dark:text-white transition-all duration-500">
       {/* Navbar */}
-      <header className="sticky top-0 z-30 bg-[#0a0f1e]/90 backdrop-blur-xl border-b border-blue-900/50 shadow-2xl">
+      <header className="sticky top-0 z-30 bg-white/80 dark:bg-[#0a0f1e]/90 backdrop-blur-xl border-b border-blue-200/70 dark:border-blue-900/50 shadow-2xl">
         <nav className="max-w-6xl mx-auto flex items-center justify-between px-4 py-3">
           <a href="#hero" className="flex items-center gap-3">
             <img
               src="/logo.png"
               alt="B B Bengal logo"
-              className="h-11 w-11 rounded-full border border-blue-900/50 bg-[#0a0f1e] p-1 shadow-lg"
+              className="h-11 w-11 rounded-full border border-blue-200/70 dark:border-blue-900/50 bg-white dark:bg-[#0a0f1e] p-1 shadow-lg"
             />
-            <span className="font-semibold tracking-tight text-white drop-shadow-sm text-base sm:text-lg leading-none">
+            <span className="font-bold tracking-tight text-slate-900 dark:text-white drop-shadow-sm text-2xl sm:text-xl leading-none">
               B B Bengal
             </span>
           </a>
 
           {/* Desktop links */}
           <div className="hidden md:flex items-center gap-6 text-sm">
-            <a href="#hero" className="text-gray-400 hover:text-white transition-all duration-300 hover:underline underline-offset-4">
+            <a href="#hero" className="text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white transition-all duration-300 hover:underline underline-offset-4">
               Home
             </a>
-            <a href="#about" className="text-gray-400 hover:text-white transition-all duration-300 hover:underline underline-offset-4">
+            <a href="#about" className="text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white transition-all duration-300 hover:underline underline-offset-4">
               About
             </a>
-            <a href="#services" className="text-gray-400 hover:text-white transition-all duration-300 hover:underline underline-offset-4">
-              Services
-            </a>
-            <a href="#ourwork" className="text-gray-400 hover:text-white transition-all duration-300 hover:underline underline-offset-4">
+            <a href="#ourwork" className="text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white transition-all duration-300 hover:underline underline-offset-4">
               Our Work
             </a>
-            <a href="#contact" className="text-gray-400 hover:text-white transition-all duration-300 hover:underline underline-offset-4">
+            <a href="#services" className="text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white transition-all duration-300 hover:underline underline-offset-4">
+              Services
+            </a>
+            <a href="#contact" className="text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white transition-all duration-300 hover:underline underline-offset-4">
               Contact
             </a>
           </div>
 
           <div className="hidden md:flex items-center gap-4">
+            <button
+              type="button"
+              aria-label="Toggle theme"
+              onClick={toggleTheme}
+              className="h-9 w-9 rounded-full border-2 border-blue-500/40 bg-blue-500/10 dark:bg-blue-900/30 flex items-center justify-center text-xs backdrop-blur-sm hover:bg-blue-500/20 transition-all"
+              title={theme === "dark" ? "Switch to light" : "Switch to dark"}
+            >
+              {theme === "dark" ? "🌙" : "☀"}
+            </button>
             <a href="#contact" className="px-6 py-2.5 rounded-full bg-blue-500 hover:bg-blue-600 text-sm font-medium text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
               Get in touch
             </a>
@@ -201,21 +213,21 @@ const App = () => {
             <button
               type="button"
               aria-label="Toggle theme"
-              onClick={() => setTheme(theme === "light" ? "dark" : theme === "dark" ? "system" : "light")}
-              className="h-8 w-8 rounded-full border-2 border-blue-500/50 bg-blue-900/30 flex items-center justify-center text-xs backdrop-blur-sm hover:bg-blue-500/20 transition-all"
+              onClick={toggleTheme}
+              className="h-8 w-8 rounded-full border-2 border-blue-500/40 bg-blue-500/10 dark:bg-blue-900/30 flex items-center justify-center text-xs backdrop-blur-sm hover:bg-blue-500/20 transition-all"
             >
-              {theme === "light" ? "☀" : theme === "dark" ? "🌙" : "💻"}
+              {theme === "dark" ? "🌙" : "☀"}
             </button>
             <button
               type="button"
               aria-label="Toggle navigation"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="h-9 w-9 rounded-full border-2 border-blue-500/50 bg-blue-900/30 flex items-center justify-center backdrop-blur-sm hover:bg-blue-500/20 transition-all"
+              className="h-9 w-9 rounded-full border-2 border-blue-500/40 bg-blue-500/10 dark:bg-blue-900/30 flex items-center justify-center backdrop-blur-sm hover:bg-blue-500/20 transition-all"
             >
               <div className="space-y-1">
-                <span className={`block h-0.5 w-5 rounded bg-white transition-transform ${mobileMenuOpen ? "translate-y-1.5 rotate-45" : ""}`} />
-                <span className={`block h-0.5 w-5 rounded bg-white transition-opacity ${mobileMenuOpen ? "opacity-0" : ""}`} />
-                <span className={`block h-0.5 w-5 rounded bg-white transition-transform ${mobileMenuOpen ? "-translate-y-1.5 -rotate-45" : ""}`} />
+                <span className={`block h-0.5 w-5 rounded bg-slate-900 dark:bg-white transition-transform ${mobileMenuOpen ? "translate-y-1.5 rotate-45" : ""}`} />
+                <span className={`block h-0.5 w-5 rounded bg-slate-900 dark:bg-white transition-opacity ${mobileMenuOpen ? "opacity-0" : ""}`} />
+                <span className={`block h-0.5 w-5 rounded bg-slate-900 dark:bg-white transition-transform ${mobileMenuOpen ? "-translate-y-1.5 -rotate-45" : ""}`} />
               </div>
             </button>
           </div>
@@ -223,9 +235,9 @@ const App = () => {
 
         {/* Mobile menu dropdown */}
         {mobileMenuOpen && (
-          <div className="md:hidden border-t border-blue-900/50 bg-[#0a0f1e]/95 backdrop-blur-xl p-4 space-y-4 shadow-2xl">
-            {["Home", "About", "Services", "Our Work", "Contact"].map((item) => (
-              <a key={item} href={`#${item.toLowerCase().replace(" ", "")}`} onClick={() => setMobileMenuOpen(false)} className="block py-2 text-white hover:text-blue-400 transition-all duration-300 hover:scale-105">
+          <div className="md:hidden border-t border-blue-200/70 dark:border-blue-900/50 bg-white/90 dark:bg-[#0a0f1e]/95 backdrop-blur-xl p-4 space-y-4 shadow-2xl">
+            {["Home", "About", "Our Work", "Services", "Contact"].map((item) => (
+              <a key={item} href={`#${item.toLowerCase().replace(" ", "")}`} onClick={() => setMobileMenuOpen(false)} className="block py-2 text-slate-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-all duration-300 hover:scale-105">
                 {item}
               </a>
             ))}
@@ -244,17 +256,20 @@ const App = () => {
         <section id="hero" className="max-w-6xl mx-auto px-4 py-16 md:py-24 grid md:grid-cols-2 gap-10 items-center">
           <div className="space-y-6">
             <p className="text-xs uppercase tracking-[0.2em] text-blue-400">B B Bengal – Commercial Interior Design Experts</p>
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold leading-tight text-white drop-shadow-2xl">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold leading-tight text-slate-900 dark:text-white drop-shadow-2xl">
             Transforming Commercial Spaces with <span className="text-blue-400">Style, Precision</span> & Smart Design
             </h1>
-            <p className="text-sm md:text-base text-gray-300 max-w-lg leading-relaxed">
+            <p className="text-sm md:text-base text-slate-600 dark:text-gray-300 max-w-lg leading-relaxed">
             Smart interior solutions for modern businesses—designed to enhance functionality, aesthetics, and brand identity.
             </p>
             <div className="flex flex-wrap gap-3">
               <a href="#contact" className="px-6 py-3 text-sm rounded-full bg-blue-500 hover:bg-blue-600 text-white font-medium shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105">
                 Talk to us
               </a>
-              <a href="#services" className="px-6 py-3 text-sm rounded-full border-2 border-blue-500/50 hover:border-blue-400 text-white hover:bg-blue-500/20 backdrop-blur-sm transition-all duration-300 hover:scale-105">
+              <a
+                href="#services"
+                className="px-6 py-3 text-sm rounded-full border-2 border-blue-500/50 hover:border-blue-400 text-slate-900 dark:text-white hover:bg-blue-500/10 dark:hover:bg-blue-500/20 backdrop-blur-sm transition-all duration-300 hover:scale-105"
+              >
                 View services
               </a>
             </div>
@@ -265,32 +280,90 @@ const App = () => {
             </div>
           </div>
           <div className="md:justify-self-end">
-            <div className="relative aspect-4/3 w-full max-w-md mx-auto rounded-2xl overflow-hidden border-2 border-blue-900/50 bg-blue-900/20 backdrop-blur-xl shadow-2xl">
+            <div className="relative aspect-4/3 w-full max-w-md mx-auto rounded-2xl overflow-hidden border-2 border-blue-200/70 dark:border-blue-900/50 bg-blue-900/10 dark:bg-blue-900/20 backdrop-blur-xl shadow-2xl">
               <img
-                src="https://plus.unsplash.com/premium_photo-1664474927853-900d5ee1fd80?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8Y2l2aWwlMjBlbmdpbmVlcmluZ3xlbnwwfHwwfHx8MA%3D%3D"
+                src="civil1.jpeg"
                 alt="Commercial interior design and civil engineering concept"
                 className="h-full w-full object-cover"
               />
-              <div className="pointer-events-none absolute inset-0 bg-linear-to-tr from-[#0a0f1e]/80 via-transparent to-blue-500/40" />
+              <div className="pointer-events-none absolute inset-0 bg-linear-to-tr from-white/10 via-transparent to-blue-500/25 dark:from-[#0a0f1e]/80 dark:to-blue-500/40" />
             </div>
           </div>
         </section>
 
         {/* About */}
-        <section id="about" className="max-w-6xl mx-auto px-4 py-16 md:py-20 border-t border-blue-900/50 bg-[#0a0f1e]/50 backdrop-blur-sm">
+        <section id="about" className="max-w-6xl mx-auto px-4 py-16 md:py-20 border-t border-blue-200/70 dark:border-blue-900/50 bg-white/60 dark:bg-[#0a0f1e]/50 backdrop-blur-sm">
           <div className="max-w-3xl space-y-4">
             <SectionTitle label="About us" />
-            <p className="text-sm md:text-base text-gray-300 leading-relaxed">
-            B B Bengal is a trusted commercial interior design company specializing in creating functional, stylish, and innovative spaces for modern businesses. We don’t just design interiors—we craft environments that enhance productivity, comfort, and brand identity.
-            </p>
-            <p className="text-sm md:text-base text-gray-300 leading-relaxed">
-            Our team focuses on planning, design, and execution, paying close attention to every detail. From office interiors and retail spaces to showrooms and commercial buildings, we prioritize quality materials, innovative design, and timely delivery.
+            <p className="text-sm md:text-base text-slate-700 dark:text-gray-300 leading-relaxed">
+            B B Bengal is a trusted commercial interior design company specializing in creating functional, stylish, and innovative spaces for modern businesses. We don't just design interiors—we craft environments that enhance productivity, comfort, and brand identity.
             </p>
           </div>
         </section>
 
+        {/* Our work */}
+        <section id="ourwork" className="max-w-6xl mx-auto px-4 py-16 md:py-20 border-t border-blue-200/70 dark:border-blue-900/50 bg-white/40 dark:bg-[#0a0f1e]/30 backdrop-blur-sm">
+          <SectionTitle label="Civil & Interior Works" />
+          <div className="mt-8 grid md:grid-cols-3 gap-6">
+            <WorkCard
+              tag="Home"
+              title="Working Process in Interior"
+              images={[
+                {
+                  src: "interior1.jpeg",
+                  alt: "Modern office interior with desks and lighting",
+                },
+                {
+                  src: "interior2.jpeg",
+                  alt: "Open-plan office space with modern design",
+                },
+                {
+                  src: "interior3.jpeg",
+                  alt: "Office meeting area with contemporary interior",
+                },
+              ]}
+            />
+            <WorkCard
+              tag="civil work"
+              title="Fire protection in buildings"
+              images={[
+                {
+                  src: "civil1.jpeg",
+                  alt: "Retail showroom interior with product displays",
+                },
+                {
+                  src: "civil4.jpeg",
+                  alt: "Modern retail store interior with shelving",
+                },
+                {
+                  src: "civil3.jpeg",
+                  alt: "Showroom lighting and interior finishes",
+                },
+              ]}
+            />
+            <WorkCard
+              tag="Interior"
+              title="After interior design"
+              images={[
+                {
+                  src: "room2.jpeg",
+                  alt: "Commercial interior renovation with modern finishes",
+                },
+                {
+                  src: "room3.jpeg",
+                  alt: "Modern commercial space interior detailing",
+                },
+                {
+                  src: "room4.jpeg",
+                  alt: "Contemporary commercial interior space",
+                },
+              ]}
+            />
+          </div>
+        </section>
+
         {/* Services */}
-        <section id="services" className="max-w-6xl mx-auto px-4 py-16 md:py-20 border-t border-blue-900/50 bg-[#0a0f1e]/30 backdrop-blur-sm">
+        <section id="services" className="max-w-6xl mx-auto px-4 py-16 md:py-20 border-t border-blue-200/70 dark:border-blue-900/50 bg-white/40 dark:bg-[#0a0f1e]/30 backdrop-blur-sm">
           <SectionTitle label="Our services" />
           <div className="mt-8 grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
             <ServiceCard title="Complete Interiors for Your Home" desc="From living rooms to bedrooms, we create cohesive designs that combine style, comfort, and functionality for your entire home." />
@@ -299,105 +372,44 @@ const App = () => {
           </div>
         </section>
 
-        {/* Our work */}
-        <section id="ourwork" className="max-w-6xl mx-auto px-4 py-16 md:py-20 border-t border-blue-900/50 bg-[#0a0f1e]/30 backdrop-blur-sm">
-          <SectionTitle label="Civil & Interior Works" />
-          <div className="mt-8 grid md:grid-cols-3 gap-6">
-            <WorkCard
-              tag="Office"
-              title="Modern Office Interior Fit-Out"
-              images={[
-                {
-                  src: "https://images.unsplash.com/photo-1524758631624-e2822e304c36?auto=format&fit=crop&w=1200&q=80",
-                  alt: "Modern office interior with desks and lighting",
-                },
-                {
-                  src: "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1200&q=80",
-                  alt: "Open-plan office space with modern design",
-                },
-                {
-                  src: "https://images.unsplash.com/photo-1527192491265-7e15c55b1ed2?auto=format&fit=crop&w=1200&q=80",
-                  alt: "Office meeting area with contemporary interior",
-                },
-              ]}
-            />
-            <WorkCard
-              tag="Retail"
-              title="Retail Showroom Design & Execution"
-              images={[
-                {
-                  src: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=1200&q=80",
-                  alt: "Retail showroom interior with product displays",
-                },
-                {
-                  src: "https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?auto=format&fit=crop&w=1200&q=80",
-                  alt: "Modern retail store interior with shelving",
-                },
-                {
-                  src: "https://images.unsplash.com/photo-1528697265836-7c5b2d0c69b7?auto=format&fit=crop&w=1200&q=80",
-                  alt: "Showroom lighting and interior finishes",
-                },
-              ]}
-            />
-            <WorkCard
-              tag="Commercial"
-              title="Commercial Space Renovation"
-              images={[
-                {
-                  src: "https://images.unsplash.com/photo-1523413651479-597eb2da0ad6?auto=format&fit=crop&w=1200&q=80",
-                  alt: "Commercial interior renovation with modern finishes",
-                },
-                {
-                  src: "https://images.unsplash.com/photo-1496307653780-42ee777d4833?auto=format&fit=crop&w=1200&q=80",
-                  alt: "Modern commercial space interior detailing",
-                },
-                {
-                  src: "https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&w=1200&q=80",
-                  alt: "Contemporary commercial interior space",
-                },
-              ]}
-            />
-          </div>
-        </section>
-
         {/* Contact */}
-        <section id="contact" className="max-w-6xl mx-auto px-4 py-16 md:py-20 border-t border-blue-900/50 bg-[#0a0f1e]/50 backdrop-blur-sm">
+        <section id="contact" className="max-w-6xl mx-auto px-4 py-16 md:py-20 border-t border-blue-200/70 dark:border-blue-900/50 bg-white/60 dark:bg-[#0a0f1e]/50 backdrop-blur-sm">
           <SectionTitle label="Contact us" />
           <div className="mt-8 grid md:grid-cols-2 gap-10">
-            <div className="space-y-4 text-sm md:text-base text-gray-300">
+            <div className="space-y-4 text-sm md:text-base text-slate-700 dark:text-gray-300">
               <p>Ready to transform your space? Get in touch with our interior experts today.</p>
               <SocialBar/>
             </div>
             <form className="space-y-4" onSubmit={handleContactSubmit}>
               <div>
-                <label className="block text-xs font-medium text-gray-400 mb-1">Name</label>
+                <label className="block text-xs font-medium text-slate-600 dark:text-gray-400 mb-1">Name</label>
                 <input
                   type="text"
                   value={contactName}
                   onChange={(e) => setContactName(e.target.value)}
-                  className="w-full rounded-lg bg-[#0f172a]/80 border border-blue-900/50 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-white placeholder-gray-500"
+                  className="w-full rounded-lg bg-white border border-blue-200/70 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-slate-900 placeholder-slate-400 dark:bg-[#0f172a]/80 dark:border-blue-900/50 dark:text-white dark:placeholder-gray-500"
                   placeholder="Your name"
                   required
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-400 mb-1">Email</label>
+                <label className="block text-xs font-medium text-slate-600 dark:text-gray-400 mb-1">Email</label>
                 <input
                   type="email"
                   value={contactEmail}
                   onChange={(e) => setContactEmail(e.target.value)}
-                  className="w-full rounded-lg bg-[#0f172a]/80 border border-blue-900/50 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-white placeholder-gray-500"
+                  className="w-full rounded-lg bg-white border border-blue-200/70 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-slate-900 placeholder-slate-400 dark:bg-[#0f172a]/80 dark:border-blue-900/50 dark:text-white dark:placeholder-gray-500"
                   placeholder="you@example.com"
                   required
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-400 mb-1">Message</label>
+                <label className="block text-xs font-medium text-slate-600 dark:text-gray-400 mb-1">Message</label>
                 <textarea
                   rows={4}
                   value={contactMessage}
                   onChange={(e) => setContactMessage(e.target.value)}
-                  className="w-full rounded-lg bg-[#0f172a]/80 border border-blue-900/50 px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-white placeholder-gray-500"
+                  className="w-full rounded-lg bg-white border border-blue-200/70 px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-slate-900 placeholder-slate-400 dark:bg-[#0f172a]/80 dark:border-blue-900/50 dark:text-white dark:placeholder-gray-500"
                   placeholder="Tell us about your project..."
                   required
                 />
@@ -411,13 +423,13 @@ const App = () => {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-blue-900/50 bg-[#0a0f1e]/90 backdrop-blur-xl">
-        <div className="max-w-6xl mx-auto px-4 py-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-gray-400">
+      <footer className="border-t border-blue-200/70 dark:border-blue-900/50 bg-white/70 dark:bg-[#0a0f1e]/90 backdrop-blur-xl">
+        <div className="max-w-6xl mx-auto px-4 py-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-600 dark:text-gray-400">
           <p>© {new Date().getFullYear()} B B Bengal. All rights reserved.</p>
           <div className="flex items-center gap-4">
             <SocialBar />
-            <a href="#hero" className="hover:text-white transition-all duration-300">Back to top</a>
-            <a href="#contact" className="hover:text-white transition-all duration-300">Contact</a>
+            <a href="#hero" className="hover:text-slate-900 dark:hover:text-white transition-all duration-300">Back to top</a>
+            <a href="#contact" className="hover:text-slate-900 dark:hover:text-white transition-all duration-300">Contact</a>
           </div>
         </div>
       </footer>
