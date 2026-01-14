@@ -1,6 +1,6 @@
 import React from "react";
 import SectionTitle from "./SectionTitle";
-import SocialBar from "./SocialBar";
+import { SocialBar } from "./";
 import useContactForm from "../hooks/useContactForm";
 
 const Contact = () => {

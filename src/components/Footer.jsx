@@ -1,5 +1,5 @@
 import React from "react";
-import SocialBar from "./SocialBar";
+import { SocialBar } from "./";
 
 const Footer = () => (
   <footer className="border-t border-blue-200/70 dark:border-blue-900/50 bg-white/70 dark:bg-[#0a0f1e]/90 backdrop-blur-xl">

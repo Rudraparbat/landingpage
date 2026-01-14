@@ -1,5 +1,5 @@
 import React from "react";
-import SocialBar from "./SocialBar";
+import { SocialBar } from "./";
 import useTheme from "../hooks/useTheme";
 
 const Navbar = () => {

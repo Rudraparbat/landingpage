@@ -1,5 +1,5 @@
 import React from "react";
-import { Navbar, Hero, About, Work, Services, Contact, Footer, SocialBar } from "./components";
+import { Navbar, Hero, About, Work, Services, Contact, Footer } from "./components";
 const App = () => {
   // Main app now renders section components; theme and contact logic moved into hooks and components.
 
