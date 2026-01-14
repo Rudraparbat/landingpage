@@ -91,6 +91,7 @@ const App = () => {
   const WorkCard = ({ tag, title, images }) => {
     const safeImages = Array.isArray(images) ? images : [];
     const [activeIndex, setActiveIndex] = React.useState(0);
+    const touchStart = React.useRef(null);
 
     const hasImages = safeImages.length > 0;
     const canNavigate = safeImages.length > 1;
@@ -104,6 +105,28 @@ const App = () => {
     const goNext = () => {
       if (!canNavigate) return;
       setActiveIndex((i) => (i + 1) % safeImages.length);
+    };
+
+    const handleTouchStart = (e) => {
+      const t = e.touches?.[0];
+      if (t) touchStart.current = { x: t.clientX, y: t.clientY };
+    };
+
+    const handleTouchEnd = (e) => {
+      if (!touchStart.current) return;
+      const t = e.changedTouches?.[0];
+      if (!t) return;
+      const dx = t.clientX - touchStart.current.x;
+      const dy = t.clientY - touchStart.current.y;
+      touchStart.current = null;
+      if (!canNavigate) return;
+      if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) {
+        if (dx < 0) {
+          goNext();
+        } else {
+          goPrev();
+        }
+      }
     };
 
     return (
@@ -139,7 +162,11 @@ const App = () => {
           </div>
         </div>
 
-        <div className="relative overflow-hidden rounded-xl border border-blue-200/70 dark:border-blue-900/50 bg-blue-900/10 dark:bg-blue-900/20">
+        <div
+          className="relative overflow-hidden rounded-xl border border-blue-200/70 dark:border-blue-900/50 bg-blue-900/10 dark:bg-blue-900/20"
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+        >
           {current ? (
             <img src={current.src} alt={current.alt} className="h-56 w-full object-cover" loading="lazy" />
           ) : (
