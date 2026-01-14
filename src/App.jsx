@@ -1,10 +1,14 @@
 import React from "react";
 
 const THEME_KEY = "voxket-theme";
+const CONTACT_EMAIL = "bbbengal@example.com";
 
 const App = () => {
   const [theme, setTheme] = React.useState("system");
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
+  const [contactName, setContactName] = React.useState("");
+  const [contactEmail, setContactEmail] = React.useState("");
+  const [contactMessage, setContactMessage] = React.useState("");
 
   React.useEffect(() => {
     const saved = window.localStorage.getItem(THEME_KEY) || "system";
@@ -24,21 +28,21 @@ const App = () => {
     window.localStorage.setItem(THEME_KEY, theme);
   }, [theme]);
 
-  const isActiveTheme = (value) => theme === value; 
+  const handleContactSubmit = (e) => {
+    e.preventDefault();
 
-  const ThemeButton = ({ label, active, onClick }) => (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`px-2 py-0.5 rounded-full text-xs ${
-        active
-          ? "bg-blue-500 text-white"
-          : "text-gray-400 hover:bg-blue-900/30"
-      }`}
-    >
-      {label}
-    </button>
-  );
+    const subject = `Website enquiry - ${contactName || "B B Bengal"}`;
+    const body = [
+      `Name: ${contactName || "-"}`,
+      `Email: ${contactEmail || "-"}`,
+      "",
+      "Message:",
+      contactMessage || "-",
+    ].join("\n");
+
+    const mailto = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    window.location.href = mailto;
+  };
 
   const SocialBar = () => (
     <div className="flex items-center gap-3 text-sm">
@@ -81,33 +85,109 @@ const App = () => {
     </div>
   );
 
-  const WorkCard = ({ tag, title, desc }) => (
-    <div className="rounded-xl border border-blue-900/50 bg-[#0a0f1e] p-5 flex flex-col gap-2 hover:shadow-xl transition-all duration-300">
-      <span className="inline-flex w-fit px-2 py-0.5 rounded-full bg-blue-500/20 text-[10px] uppercase tracking-wide text-blue-400 border border-blue-500/30">
-        {tag}
-      </span>
-      <h3 className="text-sm font-semibold text-white">{title}</h3>
-      <p className="text-xs text-gray-400 flex-1">{desc}</p>
-    </div>
-  );
+  const WorkCard = ({ tag, title, images }) => {
+    const safeImages = Array.isArray(images) ? images : [];
+    const [activeIndex, setActiveIndex] = React.useState(0);
+
+    const hasImages = safeImages.length > 0;
+    const canNavigate = safeImages.length > 1;
+    const current = hasImages ? safeImages[Math.min(activeIndex, safeImages.length - 1)] : null;
+
+    const goPrev = () => {
+      if (!canNavigate) return;
+      setActiveIndex((i) => (i - 1 + safeImages.length) % safeImages.length);
+    };
+
+    const goNext = () => {
+      if (!canNavigate) return;
+      setActiveIndex((i) => (i + 1) % safeImages.length);
+    };
+
+    return (
+      <div className="rounded-xl border border-blue-900/50 bg-[#0a0f1e] p-5 flex flex-col gap-3 hover:shadow-xl transition-all duration-300">
+        <span className="inline-flex w-fit px-2 py-0.5 rounded-full bg-blue-500/20 text-[10px] uppercase tracking-wide text-blue-400 border border-blue-500/30">
+          {tag}
+        </span>
+        <div className="flex items-start justify-between gap-3">
+          <h3 className="text-sm font-semibold text-white">{title}</h3>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={goPrev}
+              disabled={!canNavigate}
+              aria-label="Previous photo"
+              className={`h-8 w-8 rounded-full border border-blue-500/40 bg-blue-900/20 text-white text-sm transition-all ${
+                canNavigate ? "hover:bg-blue-500/20 hover:border-blue-400" : "opacity-40 cursor-not-allowed"
+              }`}
+            >
+              ‹
+            </button>
+            <button
+              type="button"
+              onClick={goNext}
+              disabled={!canNavigate}
+              aria-label="Next photo"
+              className={`h-8 w-8 rounded-full border border-blue-500/40 bg-blue-900/20 text-white text-sm transition-all ${
+                canNavigate ? "hover:bg-blue-500/20 hover:border-blue-400" : "opacity-40 cursor-not-allowed"
+              }`}
+            >
+              ›
+            </button>
+          </div>
+        </div>
+
+        <div className="relative overflow-hidden rounded-xl border border-blue-900/50 bg-blue-900/20">
+          {current ? (
+            <img src={current.src} alt={current.alt} className="h-44 w-full object-cover" loading="lazy" />
+          ) : (
+            <div className="h-44 w-full flex items-center justify-center text-xs text-gray-400">
+              No photos yet
+            </div>
+          )}
+          <div className="pointer-events-none absolute inset-0 bg-linear-to-tr from-[#0a0f1e]/40 via-transparent to-blue-500/20" />
+          {canNavigate && (
+            <div className="absolute bottom-2 right-2 rounded-full bg-[#0a0f1e]/70 border border-blue-900/50 px-2 py-0.5 text-[10px] text-gray-200">
+              {Math.min(activeIndex + 1, safeImages.length)} / {safeImages.length}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#0a0f1e] via-[#0f172a] to-[#1e1b4b] text-white transition-all duration-500">
+    <div className="min-h-screen flex flex-col bg-linear-to-br from-[#0a0f1e] via-[#0f172a] to-[#1e1b4b] text-white transition-all duration-500">
       {/* Navbar */}
       <header className="sticky top-0 z-30 bg-[#0a0f1e]/90 backdrop-blur-xl border-b border-blue-900/50 shadow-2xl">
         <nav className="max-w-6xl mx-auto flex items-center justify-between px-4 py-3">
-          <a href="#hero" className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold text-sm shadow-lg">V</div>
-            <span className="font-semibold tracking-tight text-white drop-shadow-sm">Voxer</span>
+          <a href="#hero" className="flex items-center gap-3">
+            <img
+              src="/logo.png"
+              alt="B B Bengal logo"
+              className="h-11 w-11 rounded-full border border-blue-900/50 bg-[#0a0f1e] p-1 shadow-lg"
+            />
+            <span className="font-semibold tracking-tight text-white drop-shadow-sm text-base sm:text-lg leading-none">
+              B B Bengal
+            </span>
           </a>
 
           {/* Desktop links */}
           <div className="hidden md:flex items-center gap-6 text-sm">
-            {["Home", "About", "Services", "Our Work", "Contact"].map((item) => (
-              <a key={item} href={`#${item.toLowerCase().replace(" ", "")}`} className="text-gray-400 hover:text-white transition-all duration-300 hover:underline underline-offset-4">
-                {item}
-              </a>
-            ))}
+            <a href="#hero" className="text-gray-400 hover:text-white transition-all duration-300 hover:underline underline-offset-4">
+              Home
+            </a>
+            <a href="#about" className="text-gray-400 hover:text-white transition-all duration-300 hover:underline underline-offset-4">
+              About
+            </a>
+            <a href="#services" className="text-gray-400 hover:text-white transition-all duration-300 hover:underline underline-offset-4">
+              Services
+            </a>
+            <a href="#ourwork" className="text-gray-400 hover:text-white transition-all duration-300 hover:underline underline-offset-4">
+              Our Work
+            </a>
+            <a href="#contact" className="text-gray-400 hover:text-white transition-all duration-300 hover:underline underline-offset-4">
+              Contact
+            </a>
           </div>
 
           <div className="hidden md:flex items-center gap-4">
@@ -163,12 +243,12 @@ const App = () => {
         {/* Hero */}
         <section id="hero" className="max-w-6xl mx-auto px-4 py-16 md:py-24 grid md:grid-cols-2 gap-10 items-center">
           <div className="space-y-6">
-            <p className="text-xs uppercase tracking-[0.2em] text-blue-400">AI‑powered experiences</p>
+            <p className="text-xs uppercase tracking-[0.2em] text-blue-400">B B Bengal – Commercial Interior Design Experts</p>
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold leading-tight text-white drop-shadow-2xl">
-              Build modern, responsive <span className="text-blue-400">React frontends</span> without the headache.
+            Transforming Commercial Spaces with <span className="text-blue-400">Style, Precision</span> & Smart Design
             </h1>
             <p className="text-sm md:text-base text-gray-300 max-w-lg leading-relaxed">
-              Launch your product with a clean, mobile‑first landing page including navbar, hero, about, services, work, contact, and footer – all built in React.
+            Smart interior solutions for modern businesses—designed to enhance functionality, aesthetics, and brand identity.
             </p>
             <div className="flex flex-wrap gap-3">
               <a href="#contact" className="px-6 py-3 text-sm rounded-full bg-blue-500 hover:bg-blue-600 text-white font-medium shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105">
@@ -179,15 +259,19 @@ const App = () => {
               </a>
             </div>
             <div className="flex flex-wrap gap-4 text-xs text-blue-400 font-medium">
-              <span>Fully responsive</span>
-              <span>React + Vite + Tailwind</span>
-              <span>Best practices 2025</span>
+              <span>Design</span>
+              <span>Execution</span>
+              <span>Completion</span>
             </div>
           </div>
           <div className="md:justify-self-end">
-            <div className="relative aspect-[4/3] w-full max-w-md mx-auto rounded-2xl overflow-hidden border-2 border-blue-900/50 bg-blue-900/20 backdrop-blur-xl shadow-2xl">
-              <img src="https://images.pexels.com/photos/1181675/pexels-photo-1181675.jpeg?auto=compress&cs=tinysrgb&w=800" alt="Team working on laptops" className="h-full w-full object-cover brightness-50 hover:brightness-75 transition-all duration-500" />
-              <div className="pointer-events-none absolute inset-0 bg-gradient-to-tr from-[#0a0f1e]/80 via-transparent to-blue-500/40" />
+            <div className="relative aspect-4/3 w-full max-w-md mx-auto rounded-2xl overflow-hidden border-2 border-blue-900/50 bg-blue-900/20 backdrop-blur-xl shadow-2xl">
+              <img
+                src="https://plus.unsplash.com/premium_photo-1664474927853-900d5ee1fd80?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8Y2l2aWwlMjBlbmdpbmVlcmluZ3xlbnwwfHwwfHx8MA%3D%3D"
+                alt="Commercial interior design and civil engineering concept"
+                className="h-full w-full object-cover"
+              />
+              <div className="pointer-events-none absolute inset-0 bg-linear-to-tr from-[#0a0f1e]/80 via-transparent to-blue-500/40" />
             </div>
           </div>
         </section>
@@ -197,10 +281,10 @@ const App = () => {
           <div className="max-w-3xl space-y-4">
             <SectionTitle label="About us" />
             <p className="text-sm md:text-base text-gray-300 leading-relaxed">
-              We craft fast, accessible, and fully responsive React frontends for startups and businesses who care about performance and UX on every device.
+            B B Bengal is a trusted commercial interior design company specializing in creating functional, stylish, and innovative spaces for modern businesses. We don’t just design interiors—we craft environments that enhance productivity, comfort, and brand identity.
             </p>
             <p className="text-sm md:text-base text-gray-300 leading-relaxed">
-              From simple landing pages to complex dashboards, our focus is on clean code, reusable components, and developer‑friendly structure.
+            Our team focuses on planning, design, and execution, paying close attention to every detail. From office interiors and retail spaces to showrooms and commercial buildings, we prioritize quality materials, innovative design, and timely delivery.
             </p>
           </div>
         </section>
@@ -209,19 +293,70 @@ const App = () => {
         <section id="services" className="max-w-6xl mx-auto px-4 py-16 md:py-20 border-t border-blue-900/50 bg-[#0a0f1e]/30 backdrop-blur-sm">
           <SectionTitle label="Our services" />
           <div className="mt-8 grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            <ServiceCard title="Responsive landing pages" desc="Pixel‑perfect layouts that adapt seamlessly from 320px phones to large desktop screens." />
-            <ServiceCard title="Component libraries" desc="Reusable React components for navbars, heroes, cards, forms, and more." />
-            <ServiceCard title="Integration ready" desc="Clean structure so you can plug in APIs, auth, and AI agents without frontend pain." />
+            <ServiceCard title="Complete Interiors for Your Home" desc="From living rooms to bedrooms, we create cohesive designs that combine style, comfort, and functionality for your entire home." />
+            <ServiceCard title="Smart Kitchens & Modular Spaces" desc="Custom modular solutions for kitchens, wardrobes, and storage, designed to maximize space and simplify your daily life." />
+            <ServiceCard title="Transform Your Home Effortlessly" desc="We handle renovations and home makeovers with precision, turning outdated spaces into modern, stylish, and functional interiors." />
           </div>
         </section>
 
         {/* Our work */}
         <section id="ourwork" className="max-w-6xl mx-auto px-4 py-16 md:py-20 border-t border-blue-900/50 bg-[#0a0f1e]/30 backdrop-blur-sm">
-          <SectionTitle label="Our work" />
+          <SectionTitle label="Civil & Interior Works" />
           <div className="mt-8 grid md:grid-cols-3 gap-6">
-            <WorkCard tag="SaaS" title="Analytics dashboard" desc="Responsive admin dashboard with charts, filters, and dark mode." />
-            <WorkCard tag="AI" title="Voice agent studio" desc="Landing + onboarding for real‑time AI voice platform." />
-            <WorkCard tag="Marketing" title="Product launch site" desc="High‑conversion launch page with A/B tested hero sections." />
+            <WorkCard
+              tag="Office"
+              title="Modern Office Interior Fit-Out"
+              images={[
+                {
+                  src: "https://images.unsplash.com/photo-1524758631624-e2822e304c36?auto=format&fit=crop&w=1200&q=80",
+                  alt: "Modern office interior with desks and lighting",
+                },
+                {
+                  src: "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1200&q=80",
+                  alt: "Open-plan office space with modern design",
+                },
+                {
+                  src: "https://images.unsplash.com/photo-1527192491265-7e15c55b1ed2?auto=format&fit=crop&w=1200&q=80",
+                  alt: "Office meeting area with contemporary interior",
+                },
+              ]}
+            />
+            <WorkCard
+              tag="Retail"
+              title="Retail Showroom Design & Execution"
+              images={[
+                {
+                  src: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=1200&q=80",
+                  alt: "Retail showroom interior with product displays",
+                },
+                {
+                  src: "https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?auto=format&fit=crop&w=1200&q=80",
+                  alt: "Modern retail store interior with shelving",
+                },
+                {
+                  src: "https://images.unsplash.com/photo-1528697265836-7c5b2d0c69b7?auto=format&fit=crop&w=1200&q=80",
+                  alt: "Showroom lighting and interior finishes",
+                },
+              ]}
+            />
+            <WorkCard
+              tag="Commercial"
+              title="Commercial Space Renovation"
+              images={[
+                {
+                  src: "https://images.unsplash.com/photo-1523413651479-597eb2da0ad6?auto=format&fit=crop&w=1200&q=80",
+                  alt: "Commercial interior renovation with modern finishes",
+                },
+                {
+                  src: "https://images.unsplash.com/photo-1496307653780-42ee777d4833?auto=format&fit=crop&w=1200&q=80",
+                  alt: "Modern commercial space interior detailing",
+                },
+                {
+                  src: "https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&w=1200&q=80",
+                  alt: "Contemporary commercial interior space",
+                },
+              ]}
+            />
           </div>
         </section>
 
@@ -230,21 +365,42 @@ const App = () => {
           <SectionTitle label="Contact us" />
           <div className="mt-8 grid md:grid-cols-2 gap-10">
             <div className="space-y-4 text-sm md:text-base text-gray-300">
-              <p>Have a project in mind or need help turning a Figma into a responsive React build? Send a quick message.</p>
+              <p>Ready to transform your space? Get in touch with our interior experts today.</p>
               <SocialBar/>
             </div>
-            <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
+            <form className="space-y-4" onSubmit={handleContactSubmit}>
               <div>
                 <label className="block text-xs font-medium text-gray-400 mb-1">Name</label>
-                <input type="text" className="w-full rounded-lg bg-[#0f172a]/80 border border-blue-900/50 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-white placeholder-gray-500" placeholder="Your name" />
+                <input
+                  type="text"
+                  value={contactName}
+                  onChange={(e) => setContactName(e.target.value)}
+                  className="w-full rounded-lg bg-[#0f172a]/80 border border-blue-900/50 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-white placeholder-gray-500"
+                  placeholder="Your name"
+                  required
+                />
               </div>
               <div>
                 <label className="block text-xs font-medium text-gray-400 mb-1">Email</label>
-                <input type="email" className="w-full rounded-lg bg-[#0f172a]/80 border border-blue-900/50 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-white placeholder-gray-500" placeholder="you@example.com" />
+                <input
+                  type="email"
+                  value={contactEmail}
+                  onChange={(e) => setContactEmail(e.target.value)}
+                  className="w-full rounded-lg bg-[#0f172a]/80 border border-blue-900/50 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-white placeholder-gray-500"
+                  placeholder="you@example.com"
+                  required
+                />
               </div>
               <div>
                 <label className="block text-xs font-medium text-gray-400 mb-1">Message</label>
-                <textarea rows={4} className="w-full rounded-lg bg-[#0f172a]/80 border border-blue-900/50 px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-white placeholder-gray-500" placeholder="Tell us about your project..." />
+                <textarea
+                  rows={4}
+                  value={contactMessage}
+                  onChange={(e) => setContactMessage(e.target.value)}
+                  className="w-full rounded-lg bg-[#0f172a]/80 border border-blue-900/50 px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-white placeholder-gray-500"
+                  placeholder="Tell us about your project..."
+                  required
+                />
               </div>
               <button type="submit" className="px-6 py-3 rounded-full bg-blue-500 hover:bg-blue-600 text-sm font-medium text-white shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 w-full md:w-auto">
                 Send message
@@ -257,7 +413,7 @@ const App = () => {
       {/* Footer */}
       <footer className="border-t border-blue-900/50 bg-[#0a0f1e]/90 backdrop-blur-xl">
         <div className="max-w-6xl mx-auto px-4 py-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-gray-400">
-          <p>© {new Date().getFullYear()} Voxket. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} B B Bengal. All rights reserved.</p>
           <div className="flex items-center gap-4">
             <SocialBar />
             <a href="#hero" className="hover:text-white transition-all duration-300">Back to top</a>
