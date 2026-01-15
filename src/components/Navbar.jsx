@@ -12,11 +12,11 @@ const Navbar = () => {
         <a href="#hero" className="flex items-center gap-3">
           <img
             src="/logo.png"
-            alt="B B Bengal logo"
+            alt="BB BENGAL & CO logo"
             className="h-11 w-11 rounded-full border border-blue-200/70 dark:border-blue-900/50 bg-white dark:bg-[#0a0f1e] p-1 shadow-lg"
           />
           <span className="font-bold tracking-tight text-slate-900 dark:text-white drop-shadow-sm text-2xl sm:text-xl leading-none">
-            B B Bengal
+            BB BENGAL & CO
           </span>
         </a>
 

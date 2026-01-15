@@ -17,7 +17,7 @@ const Contact = () => {
   } = useContactForm();
 
   return (
-    <section id="contact" className="max-w-6xl mx-auto px-4 py-16 md:py-20 border-t border-blue-200/70 dark:border-blue-900/50 bg-white/60 dark:bg-[#0a0f1e]/50 backdrop-blur-sm">
+    <section id="contact" className="max-w-6xl mx-auto px-4 py-10 md:py-12 border-t border-blue-200/70 dark:border-blue-900/50 bg-white/60 dark:bg-[#0a0f1e]/50 backdrop-blur-sm">
       <SectionTitle label="Contact us" />
       <div className="mt-8 grid md:grid-cols-2 gap-10">
         <div className="space-y-4 text-sm md:text-base text-slate-700 dark:text-gray-300">
