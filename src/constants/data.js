@@ -3,16 +3,19 @@ export const serviceList = [
     title: "Complete Interiors for Your Home",
     desc:
       "From living rooms to bedrooms, we create cohesive designs that combine style, comfort, and functionality for your entire home.",
+    category: "Residential",
   },
   {
     title: "Smart Kitchens & Modular Spaces",
     desc:
       "Custom modular solutions for kitchens, wardrobes, and storage, designed to maximize space and simplify your daily life.",
+    category: "Modular",
   },
   {
     title: "Transform Your Home Effortlessly",
     desc:
       "We handle renovations and home makeovers with precision, turning outdated spaces into modern, stylish, and functional interiors.",
+    category: "Renovation",
   },
 ];
 

@@ -3,12 +3,18 @@ import SectionTitle from "./SectionTitle";
 import ServiceCard from "./ServiceCard";
 import { serviceList } from "../constants/data";
 
-const Services = () => {
+const Services = ({ activeTab }) => {
+  const filteredServices =
+    activeTab === "All"
+      ? serviceList
+      : serviceList.filter((s) => s.category === activeTab);
+
   return (
     <section id="services" className="max-w-6xl mx-auto px-4 py-10 md:py-12 border-t border-blue-200/70 dark:border-blue-900/50 bg-white/40 dark:bg-[#0a0f1e]/30 backdrop-blur-sm">
       <SectionTitle label="Our services" />
+      
       <div className="mt-8 grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {serviceList.map((s) => (
+        {filteredServices.map((s) => (
           <ServiceCard key={s.title} title={s.title} desc={s.desc} />
         ))}
       </div>

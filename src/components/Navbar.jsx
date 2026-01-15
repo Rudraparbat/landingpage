@@ -2,9 +2,23 @@ import React from "react";
 import { SocialBar } from "./";
 import useTheme from "../hooks/useTheme";
 
-const Navbar = () => {
+const Navbar = ({ setActiveWorkFilter, setActiveServiceFilter }) => {
   const { theme, toggleTheme } = useTheme();
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
+
+  const workCats = [
+    { label: "All", value: "All" },
+    { label: "Home", value: "Home" },
+    { label: "Civil Work", value: "civil work" },
+    { label: "Interior", value: "Interior" }
+  ];
+
+  const serviceCats = [
+    { label: "All", value: "All" },
+    { label: "Residential", value: "Residential" },
+    { label: "Modular", value: "Modular" },
+    { label: "Renovation", value: "Renovation" }
+  ];
 
   return (
     <header className="sticky top-0 z-30 bg-white/80 dark:bg-[#0a0f1e]/90 backdrop-blur-xl border-b border-blue-200/70 dark:border-blue-900/50 shadow-2xl">
@@ -28,12 +42,63 @@ const Navbar = () => {
           <a href="#about" className="text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white transition-all duration-300 hover:underline underline-offset-4">
             About
           </a>
-          <a href="#ourwork" className="text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white transition-all duration-300 hover:underline underline-offset-4">
-            Our Work
-          </a>
-          <a href="#services" className="text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white transition-all duration-300 hover:underline underline-offset-4">
-            Services
-          </a>
+          
+          {/* Work Dropdown */}
+          <div className="relative group">
+            <a 
+              href="#ourwork" 
+              onClick={() => setActiveWorkFilter && setActiveWorkFilter("All")}
+              className="flex items-center gap-1 text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white transition-all duration-300 hover:underline underline-offset-4 py-2"
+            >
+              Our Work
+              <svg className="w-4 h-4 transition-transform group-hover:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </a>
+            <div className="absolute left-0 mt-0 pt-2 w-48 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform origin-top-left z-50">
+               <div className="bg-white dark:bg-[#0a0f1e] border border-blue-200/70 dark:border-blue-900/50 rounded-xl shadow-xl overflow-hidden">
+                 {workCats.map(cat => (
+                   <a 
+                     key={cat.value}
+                     href="#ourwork"
+                     onClick={() => setActiveWorkFilter && setActiveWorkFilter(cat.value)}
+                     className="block px-4 py-3 text-slate-600 dark:text-gray-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-600 dark:hover:text-blue-400 transition-colors border-b border-gray-100 dark:border-gray-800 last:border-0"
+                   >
+                     {cat.label}
+                   </a>
+                 ))}
+               </div>
+            </div>
+          </div>
+
+          {/* Services Dropdown */}
+          <div className="relative group">
+            <a 
+              href="#services" 
+              onClick={() => setActiveServiceFilter && setActiveServiceFilter("All")}
+              className="flex items-center gap-1 text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white transition-all duration-300 hover:underline underline-offset-4 py-2"
+            >
+              Services
+              <svg className="w-4 h-4 transition-transform group-hover:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </a>
+            <div className="absolute left-0 mt-0 pt-2 w-48 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform origin-top-left z-50">
+               <div className="bg-white dark:bg-[#0a0f1e] border border-blue-200/70 dark:border-blue-900/50 rounded-xl shadow-xl overflow-hidden">
+                 {serviceCats.map(cat => (
+                   <a 
+                     key={cat.value}
+                     href="#services"
+                     onClick={() => setActiveServiceFilter && setActiveServiceFilter(cat.value)}
+                     className="block px-4 py-3 text-slate-600 dark:text-gray-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-600 dark:hover:text-blue-400 transition-colors border-b border-gray-100 dark:border-gray-800 last:border-0"
+                   >
+                     {cat.label}
+                   </a>
+                 ))}
+               </div>
+            </div>
+          </div>
+
           <a href="#contact" className="text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white transition-all duration-300 hover:underline underline-offset-4">
             Contact
           </a>
