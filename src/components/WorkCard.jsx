@@ -6,6 +6,7 @@ const WorkCard = ({ tag, title, images }) => {
   const safeImages = Array.isArray(images) ? images : [];
   const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true, duration: 30 });
   const [selectedIndex, setSelectedIndex] = React.useState(0);
+  const [imageLoaded, setImageLoaded] = React.useState({});
   const hasImages = safeImages.length > 0;
   const canNavigate = safeImages.length > 1;
 
@@ -30,12 +31,17 @@ const WorkCard = ({ tag, title, images }) => {
 
   const deriveFormats = (path) => {
     if (!path) return { avif: null, webp: null, original: path };
-    const base = path.replace(/\.(jpg|jpeg|png)$/i, "");
+    // Remove any image extension (.jpg, .jpeg, .png, .avif, .webp)
+    const base = path.replace(/\.(jpg|jpeg|png|avif|webp)$/i, "");
     return {
       avif: `${base}.avif`,
       webp: `${base}.webp`,
       original: path,
     };
+  };
+
+  const handleImageLoad = (index) => {
+    setImageLoaded(prev => ({ ...prev, [index]: true }));
   };
 
   return (
@@ -77,8 +83,12 @@ const WorkCard = ({ tag, title, images }) => {
             <div className="flex">
               {safeImages.map((img, index) => {
                 const f = deriveFormats(img.src);
+                const isLoaded = imageLoaded[index];
                 return (
                   <div className="flex-[0_0_100%] min-w-0 relative h-56" key={index}>
+                    {/* Blur placeholder background */}
+                    <div className="absolute inset-0 h-full w-full bg-linear-to-br from-blue-200 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 animate-pulse" style={{ opacity: isLoaded ? 0 : 1, transition: 'opacity 0.3s ease-out' }} />
+                    
                     <picture className="absolute inset-0 h-full w-full">
                       {f.avif && <source srcSet={f.avif} type="image/avif" />}
                       {f.webp && <source srcSet={f.webp} type="image/webp" />}
@@ -89,6 +99,8 @@ const WorkCard = ({ tag, title, images }) => {
                         loading="lazy"
                         decoding="async"
                         draggable={false}
+                        onLoad={() => handleImageLoad(index)}
+                        style={{ opacity: isLoaded ? 1 : 0.8, transition: 'opacity 0.3s ease-out' }}
                       />
                     </picture>
                     <div className="pointer-events-none absolute inset-0 bg-linear-to-tr from-white/20 via-transparent to-blue-500/15 dark:from-[#0a0f1e]/40 dark:to-blue-500/20" />

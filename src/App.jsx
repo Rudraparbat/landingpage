@@ -1,7 +1,11 @@
 import React, { useState } from "react";
 import { Navbar, Hero, About, Work, Services, Contact, Footer } from "./components";
+import usePerformanceMonitoring from "./hooks/usePerformanceMonitoring";
 
 const App = () => {
+  // Initialize performance monitoring
+  usePerformanceMonitoring();
+
   // Lifted state for filtering sections from Navbar
   const [activeWorkFilter, setActiveWorkFilter] = useState("All");
   const [activeServiceFilter, setActiveServiceFilter] = useState("All");
