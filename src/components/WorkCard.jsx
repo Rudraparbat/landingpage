@@ -87,6 +87,7 @@ const WorkCard = ({ tag, title, images }) => {
                         alt={img.alt}
                         className="h-full w-full object-cover select-none"
                         loading="lazy"
+                        decoding="async"
                         draggable={false}
                       />
                     </picture>
