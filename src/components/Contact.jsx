@@ -20,8 +20,31 @@ const Contact = () => {
     <section id="contact" className="max-w-6xl mx-auto px-4 py-10 md:py-12 border-t border-blue-200/70 dark:border-blue-900/50 bg-white/60 dark:bg-[#0a0f1e]/50 backdrop-blur-sm">
       <SectionTitle label="Contact us" />
       <div className="mt-8 grid md:grid-cols-2 gap-10">
-        <div className="space-y-4 text-sm md:text-base text-slate-700 dark:text-gray-300">
+        <div className="space-y-6 text-sm md:text-base text-slate-700 dark:text-gray-300">
           <p>Ready to transform your space? Get in touch with our interior experts today.</p>
+          
+          <div className="space-y-4 pt-4">
+            <div>
+              <h3 className="font-semibold text-slate-900 dark:text-white mb-2">Head Office</h3>
+              <p className="text-sm">BB Bengal & Co</p>
+              <p className="text-sm">S/H/1 B.P first lane, Mahesh</p>
+              <p className="text-sm">Serampur, Hooghly</p>
+              <p className="text-sm">West Bengal, Pin 712202</p>
+            </div>
+            
+            <div>
+              <h3 className="font-semibold text-slate-900 dark:text-white mb-2">Phone</h3>
+              <p className="text-sm"><a href="tel:+918478807327" className="hover:text-blue-600 dark:hover:text-blue-400 transition">+91 8478807327</a></p>
+              <p className="text-sm"><a href="tel:+917439100473" className="hover:text-blue-600 dark:hover:text-blue-400 transition">+91 7439100473</a></p>
+            </div>
+            
+            <div>
+              <h3 className="font-semibold text-slate-900 dark:text-white mb-2">Email</h3>
+              <p className="text-sm"><a href="mailto:bbbengal15@gmail.com" className="hover:text-blue-600 dark:hover:text-blue-400 transition">bbbengal15@gmail.com</a></p>
+              <p className="text-sm"><a href="mailto:bidyutdas2007@gmail.com" className="hover:text-blue-600 dark:hover:text-blue-400 transition">bidyutdas2007@gmail.com</a></p>
+            </div>
+          </div>
+          
           <SocialBar />
         </div>
         <form className="space-y-4" onSubmit={handleContactSubmit}>
