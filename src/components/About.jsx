@@ -7,7 +7,7 @@ const About = () => {
       <div className="max-w-3xl space-y-4">
         <SectionTitle label="About us" />
         <p className="text-sm md:text-base text-slate-700 dark:text-gray-300 leading-relaxed">
-          BB BENGAL & CO is a trusted commercial interior design company specializing in creating functional, stylish, and innovative spaces for modern businesses. We don't just design interiors—we craft environments that enhance productivity, comfort, and brand identity.
+          BB BENGAL & CO is a owned Construction Leader established in 2019, known for significant projects across the India focusing o large scale  developments with a strong emphasis on quality and professionalism.
         </p>
       </div>
     </section>
