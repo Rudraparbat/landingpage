@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Navbar, Hero, About, Work, Services, Contact, Footer } from "./components";
+import { Navbar, Hero, About, Work, VisionMission, Services, Contact, Footer } from "./components";
 import usePerformanceMonitoring from "./hooks/usePerformanceMonitoring";
 
 const App = () => {
@@ -20,6 +20,7 @@ const App = () => {
         <Hero />
         <About />
         <Work activeTab={activeWorkFilter} setActiveTab={setActiveWorkFilter} />
+        <VisionMission />
         <Services activeTab={activeServiceFilter} setActiveTab={setActiveServiceFilter} />
         <Contact />
       </main>
